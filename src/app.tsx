@@ -1,5 +1,5 @@
 const AUTO_CHECK_INTERVAL = 30 * 1000; // 30 seconds
-const LINK_BASE = "https://example.com";
+const LINK_BASE = "https://github.com/ktprograms/canva-spelling-grammar";
 const ERROR_COLOUR = "#ff0000";
 const HINT_COLOUR = "#ffa500";
 const FOCUS_COLOUR = "#999900";
@@ -55,7 +55,7 @@ const enum LocalStorageKey {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function handleError(error: any) {
   if (error instanceof CanvaError) {
-    if (error.code !== "rate_limited" && error.message !== "[not_allowed]:  Operation is not allowed when app is suspended.") {
+    if (error.code !== "rate_limited" && error.message !== "[not_allowed]:  Operation is not allowed when app is suspended." && error.message !== "[bad_request]:  Each app may only have 1 query for each content type open at a time. Please close any open queries and try again.") {
       notification.addToast({
         messageText: error.message,
       });
@@ -807,12 +807,14 @@ export const Suggestion = (props: {
                 <span style={{ ...(!checked) && { textDecoration: "line-through" } }}>
                   <span style={{ color: typeName === "Hint" ? HINT_COLOUR : ERROR_COLOUR, fontWeight: "bold" }}>{original}</span>
                   {hasReplacment(replacements) && <>
+                    <span> </span>
                     <span>
                       <FormattedMessage
                         description="This is an arrow indicating the change to be made for a suggestion. It points in the direction of writing (i.e. to the right in English)."
-                        defaultMessage=" ➙ "
+                        defaultMessage="➙"
                       />
                     </span>
+                    <span> </span>
                     <span style={{ color: "green" }}>{replacements[0].value}</span>
                   </>}
                 </span>
