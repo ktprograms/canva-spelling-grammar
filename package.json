@@ -12,9 +12,6 @@
     "lint:types": "tsc",
     "start": "npx @canva/cli apps start",
     "start:preview": "npx @canva/cli apps start --preview",
-    "test": "jest --no-cache --passWithNoTests",
-    "test:watch": "jest --watchAll",
-    "test:update": "npm run test -- -u",
     "postinstall": "tsx ./scripts/copy_env.ts"
   },
   "dependencies": {

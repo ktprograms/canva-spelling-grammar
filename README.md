@@ -1,10 +1,6 @@
-# Canva App
+# Canva Spelling & Grammar Extension
 
-Welcome to your Canva App! 🎉
-
-This is a starting point for your app using your chosen template. The complete documentation for the platform is at [canva.dev/docs/apps](https://www.canva.dev/docs/apps/).
-
-**Note:** This code and documentation assumes some experience with TypeScript and React.
+Spellcheck for Canva using [LanguageTool](https://languagetool.org) for finding errors and suggestions.
 
 ## Requirements
 
@@ -19,7 +15,7 @@ This is a starting point for your app using your chosen template. The complete d
 npm install
 ```
 
-## Running your Canva App
+## Running
 
 ### Step 1: Start the local development server
 
@@ -101,79 +97,3 @@ To enable HMR:
 ### Step 4 (Optional): Setup the Canva Dev MCP Server
 
 If you're using AI coding tools, such as Cursor or Claude Code, you can connect to the Canva Dev MCP Server to supercharge your development workflow. See this [setup guide](https://www.canva.dev/docs/apps/mcp-server/) to get started.
-
-## Running an app's backend
-
-Some templates provide an example backend. This backend is defined in the template's `backend/server.ts` file, automatically starts when the `npm start` command is run, and becomes available at <http://localhost:3001>.
-
-To run templates that have a backend:
-
-1. Navigate to the [Your apps](https://www.canva.com/developers/apps) page.
-1. Select the app you want to run the example with.
-1. Copy your environment variables from **Security** -> **Credentials** -> **.env file**.
-1. Paste the contents into the starter kit's `.env` file.
-
-   For example:
-
-   ```bash
-   CANVA_APP_ID=AABBccddeeff
-   CANVA_APP_ORIGIN=https://app-aabbccddeeff.canva-apps.com
-   CANVA_BACKEND_PORT=3001
-   CANVA_FRONTEND_PORT=8080
-   CANVA_BACKEND_HOST=http://localhost:3001
-   CANVA_HMR_ENABLED=TRUE
-   ```
-
-1. Start the app:
-
-   ```bash
-   npm start
-   ```
-
-The ID of the app must be explicitly defined because it's required to [send and verify HTTP requests](https://www.canva.dev/docs/apps/verifying-http-requests/). If you don't set up the ID in the `.env` file, an error will be thrown when attempting to run the example.
-
-## Customizing the backend host
-
-If your app has a backend, the URL of the server likely depends on whether it's a development or production build. For example, during development, the backend is probably running on a localhost URL, but once the app's in production, the backend needs to be exposed to the internet.
-
-To more easily customize the URL of the server:
-
-1. Open the `.env` file in the text editor of your choice.
-2. Set the `CANVA_BACKEND_HOST` environment variable to the URL of the server.
-3. When sending a request, use `BACKEND_HOST` as the base URL:
-
-   ```ts
-   const response = await fetch(`${BACKEND_HOST}/custom-route`);
-   ```
-
-   **Note:** `BACKEND_HOST` is a global constant that contains the value of the `CANVA_BACKEND_HOST` environment variable. The variable is made available to the app via webpack and does not need to be imported.
-
-4. Before bundling the app for production, update `CANVA_BACKEND_HOST` to point to the production backend.
-
-## Configure ngrok (optional)
-
-If your app requires authentication with a third party service, your server needs to be exposed via a publicly available URL, so that Canva can send requests to it.
-This step explains how to do this with [ngrok](https://ngrok.com/).
-
-**Note:** ngrok is a useful tool, but it has inherent security risks, such as someone figuring out the URL of your server and accessing proprietary information. Be mindful of the risks, and if you're working as part of an organization, talk to your IT department.
-You must replace ngrok urls with hosted API endpoints for production apps.
-
-To use ngrok, you'll need to do the following:
-
-1. Sign up for a ngrok account at <https://ngrok.com/>.
-2. Locate your ngrok [authtoken](https://dashboard.ngrok.com/get-started/your-authtoken).
-3. Set an environment variable for your authtoken, using the command line. Replace `<YOUR_AUTH_TOKEN>` with your actual ngrok authtoken:
-
-   For macOS and Linux:
-
-   ```bash
-   export NGROK_AUTHTOKEN=<YOUR_AUTH_TOKEN>
-   ```
-
-   For Windows PowerShell:
-
-   ```shell
-   $Env:NGROK_AUTHTOKEN = "<YOUR_AUTH_TOKEN>"
-   ```
-
-This environment variable is available for the current terminal session, so the command must be re-run for each new session. Alternatively, you can add the variable to your terminal's default parameters.
