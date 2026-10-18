@@ -1,0 +1,1 @@
+This app does not collect nor store any data. See the [Canva](https://www.canva.com/policies/privacy-policy/) and [LanguageTool](https://languagetool.org/legal/privacy) Privacy Policies to understand how your data is used.
