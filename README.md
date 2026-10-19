@@ -2,7 +2,7 @@
 
 Spellcheck for Canva using [LanguageTool](https://languagetool.org) for finding errors and suggestions.
 
-![](doc/screenshot.png)
+![](res/screenshot.png)
 
 ## Requirements
 
