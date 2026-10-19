@@ -35,7 +35,6 @@ import { editContent } from "@canva/design";
 import * as styles from "styles/components.css";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
-import { notification } from "@canva/platform";
 import { CanvaError } from "@canva/error";
 import { useFeatureSupport } from "@canva/app-hooks";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -50,21 +49,6 @@ const enum Task {
 const enum LocalStorageKey {
   DISABLED_MATCHES = "disabledMatches",
   DIGITS_ARE_MISSPELL = "digitsAreMisspell",
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleError(error: any) {
-  if (error instanceof CanvaError) {
-    if (error.code !== "rate_limited" && error.message !== "[not_allowed]:  Operation is not allowed when app is suspended." && error.message !== "[bad_request]:  Each app may only have 1 query for each content type open at a time. Please close any open queries and try again.") {
-      notification.addToast({
-        messageText: error.message,
-      });
-    }
-  } else {
-    notification.addToast({
-      messageText: `An error occurred: ${error}. Please try again.`,
-    });
-  }
 }
 
 export const App = () => {
@@ -288,6 +272,7 @@ export const App = () => {
       await clearFormatting();
       setHasChecked(false);
       setMatches([]);
+      setError(undefined);
     } catch (error) {
       handleError(error);
     }
@@ -494,6 +479,17 @@ export const App = () => {
     }
   }, [settingsVisible])
 
+  const [error, setError] = useState<string | undefined>(undefined);
+  function handleError(error: unknown) {
+    if (error instanceof CanvaError) {
+      if (error.code !== "rate_limited" && error.message !== "[not_allowed]:  Operation is not allowed when app is suspended." && error.message !== "[bad_request]:  Each app may only have 1 query for each content type open at a time. Please close any open queries and try again.") {
+        setError(error.message);
+      }
+    } else {
+      setError(`${error}`);
+    }
+  }
+
   return !isSupported(editContent)
     ? (
       <div className={styles.scrollContainer}>
@@ -511,6 +507,17 @@ export const App = () => {
             <FormattedMessage
               description='Alert message indicating that the spellcheck results have changed, and need to be reviewed before pressing "Fix" again.'
               defaultMessage='Content has changed since the last spellcheck. Please review the new results and press "Fix" again.'
+            />
+          </Alert>}
+
+          {error && <Alert tone="critical">
+            {error}
+
+            <br />
+
+            <FormattedMessage
+              description="Message shown below an error message, indicating the user should retry the action"
+              defaultMessage="Please try again."
             />
           </Alert>}
 
@@ -978,6 +985,16 @@ type TextItem = {
   plaintextStart: number;
 }
 
+function parseResponse(data: string): LanguageToolResponse {
+  try {
+    return JSON.parse(data);
+  } catch {
+    throw data;
+  }
+}
+
+const SUPPORTED_LANGUAGE_CODES = ["ar", "ast-ES", "be-BY", "br-FR", "ca-ES", "ca-ES-balear", "ca-ES-valencia", "crh-UA", "da-DK", "de", "de-AT", "de-CH", "de-DE", "de-DE-x-simple-language", "de-DE-x-simple-language-DE", "de-LU", "el-GR", "en", "en-AU", "en-CA", "en-GB", "en-NZ", "en-US", "en-ZA", "eo", "es", "es-AR", "es-ES", "fa", "fa-IR", "fr", "fr-BE", "fr-CA", "fr-CH", "fr-FR", "ga-IE", "gl-ES", "it", "it-IT", "ja-JP", "km-KH", "nb", "nl", "nl-BE", "nl-NL", "no", "pl-PL", "pt", "pt-AO", "pt-BR", "pt-MZ", "pt-PT", "ro-RO", "ru-RU", "sk-SK", "sl-SI", "sv", "sv-SE", "ta-IN", "tl-PH", "uk-UA", "zh-CN"]
+
 // TODO: Allow picking other replacements
 async function spellcheck(items: Item[]): Promise<[LanguageToolMatches, Map<DisabledMatchID, LanguageToolMatch>]> {
   const textItems = items.reduce<TextItem[]>((acc, item) => {
@@ -1009,7 +1026,9 @@ async function spellcheck(items: Item[]): Promise<[LanguageToolMatches, Map<Disa
   }, []);
 
   const text: string = textItems.map(({ text }) => text).join("");
-  const preferredVariants = navigator.languages.filter((locale) => new Intl.Locale(locale).region !== undefined).reverse().join();
+  const preferredVariants = navigator.languages
+    .filter((locale) => new Intl.Locale(locale).region !== undefined && SUPPORTED_LANGUAGE_CODES.indexOf(locale) > -1)
+    .reverse().join();
   const baseParams: LanguageToolParams = {
     text,
     language: "auto",
@@ -1034,7 +1053,7 @@ async function spellcheck(items: Item[]): Promise<[LanguageToolMatches, Map<Disa
     } as LanguageToolParams),
   });
   const abtloData = await (await fetch(abtloRequest)).text();
-  const abtloResponse = JSON.parse(abtloData) as LanguageToolResponse;
+  const abtloResponse = parseResponse(abtloData);
   matches.push(...abtloResponse.matches, ...(abtloResponse.hiddenMatches || []));
 
   const tloRequest = new Request("https://api.languagetool.org/v2/check", {
@@ -1045,7 +1064,7 @@ async function spellcheck(items: Item[]): Promise<[LanguageToolMatches, Map<Disa
     } as LanguageToolParams),
   });
   const tloData = await (await fetch(tloRequest)).text();
-  const tloResponse = JSON.parse(tloData) as LanguageToolResponse;
+  const tloResponse = parseResponse(tloData);
   matches.push(...tloResponse.matches, ...(tloResponse.hiddenMatches || []));
 
   const additionalMatches = [...digitsMisspelled(text), ...antAnceEntEnce(text)];
@@ -1106,7 +1125,7 @@ function digitsMisspelled(text: string): LanguageToolResponseMatches {
   const matches: LanguageToolResponseMatches = [];
 
   const value = localStorage.getItem(LocalStorageKey.DIGITS_ARE_MISSPELL);
-  if (value && JSON.parse(value) === true) {
+  if (value ? JSON.parse(value) : true) {
     const regex = /\S+/g;
     let results;
     while ((results = regex.exec(text)) != null) {
